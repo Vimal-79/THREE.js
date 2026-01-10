@@ -48,6 +48,7 @@ const sun = new THREE.Mesh(
   new THREE.SphereGeometry(15, 32, 16),
   new THREE.MeshStandardMaterial({ map: sunTexture })
 )
+sun.name = "sun"
 scene.add(sun);
 
 //mercury
@@ -56,6 +57,7 @@ const mercury = new THREE.Mesh(
   new THREE.SphereGeometry(5, 32, 16),
   new THREE.MeshStandardMaterial({ map: mercuryTexture })
 )
+mercury.name = "mercury"
 const mercuryOrbit = new THREE.Group();
 mercuryOrbit.add(mercury)
 mercury.position.set(30, 0, 0);
@@ -71,6 +73,7 @@ const venus = new THREE.Mesh(
   new THREE.SphereGeometry(6, 32, 16),
   new THREE.MeshStandardMaterial({ map: venusTexture })
 )
+venus.name = "venus"
 const venusOrbit = new THREE.Group()
 venusOrbit.add(venus)
 venus.position.set(50, 0, 0)
@@ -86,6 +89,7 @@ const earth = new THREE.Mesh(
   new THREE.SphereGeometry(5, 32, 16),
   new THREE.MeshStandardMaterial({ map: earthTexture })
 )
+earth.name = "earth"
 const earthOrbit = new THREE.Group();
 earthOrbit.add(earth);
 earth.position.set(70, 0, 0);
@@ -103,7 +107,7 @@ const moon = new THREE.Mesh(
   new THREE.SphereGeometry(2, 32, 16),
   new THREE.MeshStandardMaterial({ map: moonTexture, normalMap: normalTexture })
 )
-
+moon.name = "moon"
 const moonOrbit = new THREE.Group();
 moonOrbit.add(moon)
 moonOrbit.position.set(70, 0, 0)
@@ -121,6 +125,7 @@ const mars = new THREE.Mesh(
   new THREE.SphereGeometry(4, 32, 16),
   new THREE.MeshStandardMaterial({ map: marsTexture, normalMap: normalTexture })
 )
+mars.name = "mars"
 const marsOrbit = new THREE.Group();
 marsOrbit.add(mars);
 mars.position.set(90, 0, 0);
@@ -136,6 +141,7 @@ const jupiter = new THREE.Mesh(
   new THREE.SphereGeometry(7, 32, 16),
   new THREE.MeshStandardMaterial({ map: jupiterTexture })
 )
+jupiter.name = "jupiter"
 const jupiterRingTexture = new THREE.TextureLoader().load('./textures/jupiter_ring.jpg');
 const jupiterRing = new THREE.Mesh(
   new THREE.RingGeometry(9, 12, 32),
@@ -144,6 +150,7 @@ const jupiterRing = new THREE.Mesh(
     side: THREE.DoubleSide
   })
 )
+jupiterRing.name = "jupiter"
 const jupiterOrbit = new THREE.Group();
 jupiterOrbit.add(jupiter);
 jupiter.add(jupiterRing);
@@ -161,6 +168,7 @@ const saturn = new THREE.Mesh(
   new THREE.SphereGeometry(4, 32, 16),
   new THREE.MeshStandardMaterial({ map: saturnTexture })
 )
+saturn.name = "saturn"
 const saturnOrbit = new THREE.Group();
 saturnOrbit.add(saturn);
 saturn.position.set(140, 0, 0);
@@ -176,6 +184,7 @@ const uranus = new THREE.Mesh(
   new THREE.SphereGeometry(5, 32, 16),
   new THREE.MeshStandardMaterial({ map: uranusTexture })
 );
+uranus.name = "uranus"
 const uranusOrbit = new THREE.Group();
 uranusOrbit.add(uranus)
 uranus.position.set(160, 0, 0)
@@ -191,6 +200,7 @@ const neptune = new THREE.Mesh(
   new THREE.SphereGeometry(5, 32, 16),
   new THREE.MeshStandardMaterial({ map: neptuneTexture })
 )
+neptune.name = "neptune"
 const neptuneOrbit = new THREE.Group();
 neptuneOrbit.add(neptune)
 neptune.position.set(180, 0, 0)
@@ -201,31 +211,16 @@ function neptuneOrbitFunc(time) {
 }
 
 
-function lineGenerator(lines) {
+function getLineOrFact(lineOrFactArray) {
   const ul = document.createElement('ul');
-  lines.forEach((line) => {
+  lineOrFactArray.forEach((element) => {
     const div = document.createElement('div');
     ul.append(div)
     div.classList.add("list-item");
     const li = document.createElement('li');
     div.append(li);
     const Content = document.createElement('li');
-    Content.innerText = line
-    div.append(Content)
-  })
-  return ul
-}
-
-function getFacts(facts) {
-  const ul = document.createElement('ul');
-  facts.forEach((fact) => {
-    const div = document.createElement('div');
-    ul.append(div)
-    div.classList.add("list-item");
-    const li = document.createElement('li');
-    div.append(li);
-    const Content = document.createElement('li');
-    Content.innerText = fact
+    Content.innerText = element
     div.append(Content)
   })
   return ul
@@ -245,12 +240,16 @@ function displayCard(planetName) {
   </div>
   </div>`
 
-  const quickInformation = lineGenerator(PlanetsInformation[planetName].lines)
+  const quickInformation = getLineOrFact(PlanetsInformation[planetName].lines)
   document.querySelector('.lines').appendChild(quickInformation)
-  const facts = getFacts(PlanetsInformation[planetName].facts)
+  const facts = getLineOrFact(PlanetsInformation[planetName].facts)
   document.querySelector('.facts').appendChild(facts)
 }
 
+//check which planet is clicked
+function planetClickedFunc(planet) {
+  displayCard(planet)
+}
 
 // created raycaster 
 const raycaster = new THREE.Raycaster();
@@ -262,41 +261,12 @@ function myfnc(e) {
   raycaster.setFromCamera(mouse, camera)
 
   const intersects = raycaster.intersectObjects(scene.children, true)
-  
- function planetClickedFunc (planet){
-      displayCard(planet)
-    }
-    
+
   if (intersects.length > 0) {
     const clickedObject = intersects[0].object;
 
-   
+    planetClickedFunc(clickedObject.name)
 
-    switch (clickedObject) {
-      case sun: displayCard('sun');
-        break;
-      case mercury: displayCard('mercury');
-        break;
-      case venus: displayCard('venus');
-        break;
-      case earth: displayCard('earth');
-        break;
-      case moon: displayCard('moon');
-        break;
-      case mars: displayCard('mars');
-        break;
-      case jupiter: displayCard('jupiter');
-        break;
-      case saturn: displayCard('saturn');
-        break;
-      case uranus: displayCard('uranus');
-        break;
-      case neptune: displayCard('neptune');
-        break;
-      default:
-        console.log('nothing')
-        break;
-    }
   }
   if (intersects.length < 1) {
     planetInformationCard.innerHTML = ''
