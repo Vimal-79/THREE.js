@@ -45,7 +45,7 @@
 
 .card ul {
   margin: 10px 0;
-  text-shadow: 0.5px 0.5px 2px #000;
+  text-shadow: 0.5px 0.5px 10px #000;
 }
 
 .card .list-item li {

@@ -1,9 +1,7 @@
 //setting up the scene, camera, renderer, controls, lights
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { planets } from './planetInformation.js'
-
-
+import { PlanetsInformation } from './planetsInformation.js'
 
 const scene = new THREE.Scene();
 
@@ -203,19 +201,55 @@ function neptuneOrbitFunc(time) {
 }
 
 
-const planetInformationCard = document.getElementById('information-box-container');
-function displayCard(e) {
-  planetInformationCard.innerHTML = `
-  <div class='card' style="background-image: url('/planets/${e}.jpg')">
-  <h1 class='planet_name'> ${e} </h1>
-      <div class="card-discription">
-        ${planets[e].overall}
-        <h2>Facts</h2>
-        ${planets[e].disc}
-      </div>
-  </div>`
+function lineGenerator(lines) {
+  const ul = document.createElement('ul');
+  lines.forEach((line) => {
+    const div = document.createElement('div');
+    ul.append(div)
+    div.classList.add("list-item");
+    const li = document.createElement('li');
+    div.append(li);
+    const Content = document.createElement('li');
+    Content.innerText = line
+    div.append(Content)
+  })
+  return ul
 }
 
+function getFacts(facts) {
+  const ul = document.createElement('ul');
+  facts.forEach((fact) => {
+    const div = document.createElement('div');
+    ul.append(div)
+    div.classList.add("list-item");
+    const li = document.createElement('li');
+    div.append(li);
+    const Content = document.createElement('li');
+    Content.innerText = fact
+    div.append(Content)
+  })
+  return ul
+}
+
+
+const planetInformationCard = document.getElementById('information-box-container');
+
+function displayCard(planetName) {
+  planetInformationCard.innerHTML = `
+  <div class='card' style="background-image: url('/planets/${planetName}.jpg')">
+  <h1 class='planet_name'> ${planetName} </h1>
+  <div class='card-discription'>
+  <div class='lines'></div>
+  <h2>Facts</h2>
+  <div class='facts'></div>
+  </div>
+  </div>`
+
+  const quickInformation = lineGenerator(PlanetsInformation[planetName].lines)
+  document.querySelector('.lines').appendChild(quickInformation)
+  const facts = getFacts(PlanetsInformation[planetName].facts)
+  document.querySelector('.facts').appendChild(facts)
+}
 
 
 // created raycaster 
@@ -228,9 +262,15 @@ function myfnc(e) {
   raycaster.setFromCamera(mouse, camera)
 
   const intersects = raycaster.intersectObjects(scene.children, true)
-
+  
+ function planetClickedFunc (planet){
+      displayCard(planet)
+    }
+    
   if (intersects.length > 0) {
     const clickedObject = intersects[0].object;
+
+   
 
     switch (clickedObject) {
       case sun: displayCard('sun');
