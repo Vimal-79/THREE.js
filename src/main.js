@@ -1,6 +1,7 @@
 //setting up the scene, camera, renderer, controls, lights
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { FlyControls } from 'three/examples/jsm/controls/FlyControls.js';
 import { planets } from './planetInformation.js'
 
 const scene = new THREE.Scene();
@@ -22,7 +23,38 @@ camera.lookAt(88, 0, 0);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(88, 0, 0);
+controls.enableDamping = true;
 controls.update();
+
+const flyControls = new FlyControls(camera, renderer.domElement);
+flyControls.enabled = false;
+flyControls.dragToLook = true;
+flyControls.movementSpeed = 35;
+flyControls.rollSpeed = 0.002;
+
+const orbitModeButton = document.getElementById('orbit-mode');
+const flyModeButton = document.getElementById('fly-mode');
+const flyHelp = document.getElementById('fly-help');
+
+orbitModeButton.addEventListener('click', () => {
+  const direction = new THREE.Vector3();
+  camera.getWorldDirection(direction);
+  controls.target.copy(camera.position).addScaledVector(direction, 80);
+  controls.enabled = true;
+  flyControls.enabled = false;
+  controls.update();
+  orbitModeButton.setAttribute('aria-pressed', 'true');
+  flyModeButton.setAttribute('aria-pressed', 'false');
+  flyHelp.hidden = true;
+});
+
+flyModeButton.addEventListener('click', () => {
+  controls.enabled = false;
+  flyControls.enabled = true;
+  flyModeButton.setAttribute('aria-pressed', 'true');
+  orbitModeButton.setAttribute('aria-pressed', 'false');
+  flyHelp.hidden = false;
+});
 
 const pointLight = new THREE.PointLight(0xffd6a0, 8);
 pointLight.position.set(0, 0, 0);
@@ -41,10 +73,30 @@ const normalTexture = new THREE.TextureLoader().load('/textures/normal_map.jpg')
 // sun
 const sunTexture = new THREE.TextureLoader().load('/textures/sun.jpg');
 const sun = new THREE.Mesh(
-  new THREE.SphereGeometry(15, 32, 16),
+  new THREE.SphereGeometry(15, 64, 48),
   new THREE.MeshBasicMaterial({ map: sunTexture })
 )
 scene.add(sun);
+
+const glowCanvas = document.createElement('canvas');
+glowCanvas.width = glowCanvas.height = 128;
+const glowContext = glowCanvas.getContext('2d');
+const glowGradient = glowContext.createRadialGradient(64, 64, 8, 64, 64, 64);
+glowGradient.addColorStop(0, 'rgba(255, 190, 70, 0.8)');
+glowGradient.addColorStop(0.35, 'rgba(255, 100, 15, 0.35)');
+glowGradient.addColorStop(1, 'rgba(255, 60, 0, 0)');
+glowContext.fillStyle = glowGradient;
+glowContext.fillRect(0, 0, 128, 128);
+
+const sunGlow = new THREE.Sprite(new THREE.SpriteMaterial({
+  map: new THREE.CanvasTexture(glowCanvas),
+  blending: THREE.AdditiveBlending,
+  depthWrite: false,
+  transparent: true
+}));
+sunGlow.scale.set(48, 48, 1);
+sunGlow.renderOrder = 1;
+scene.add(sunGlow);
 
 //mercury
 const mercuryTexture = new THREE.TextureLoader().load('/textures/mercury.jpg');
@@ -77,10 +129,10 @@ function venusOrbitFunc(time) {
 }
 
 //earth
-const earthTexture = new THREE.TextureLoader().load('/textures/earth.jpeg');
+const earthTexture = new THREE.TextureLoader().load('/textures/earth.jpg');
 const earth = new THREE.Mesh(
-  new THREE.SphereGeometry(4, 32, 16),
-  new THREE.MeshStandardMaterial({ map: earthTexture })
+  new THREE.SphereGeometry(4, 64, 48),
+  new THREE.MeshStandardMaterial({ map: earthTexture, roughness: 0.9 })
 )
 const earthOrbit = new THREE.Group();
 earthOrbit.add(earth);
@@ -89,8 +141,8 @@ sun.add(earthOrbit);
 
 function earthOrbitFunc(time) {
   earthOrbit.rotation.y += time;
-  earth.rotation.y += time * 0.18;
-  moonOrbitFunc(time * 0.1);
+  earth.rotation.y += time * 8;
+  moonOrbitFunc(time * (365.256 / 27.322));
 }
 
 //moon
@@ -182,7 +234,7 @@ const saturn = new THREE.Mesh(
 )
 const saturnRing = new THREE.Mesh(
   new THREE.RingGeometry(9, 14, 96),
-  new THREE.MeshStandardMaterial({
+  new THREE.MeshBasicMaterial({
     color: 0xc3a77e,
     side: THREE.DoubleSide,
     transparent: true,
@@ -226,6 +278,15 @@ const neptuneOrbit = new THREE.Group();
 neptuneOrbit.add(neptune)
 neptune.position.set(180, 0, 0)
 sun.add(neptuneOrbit)
+mercuryOrbit.rotation.y = 0.8;
+venusOrbit.rotation.y = 2.2;
+earthOrbit.rotation.y = 4.7;
+moonOrbit.rotation.y = 1.2;
+marsOrbit.rotation.y = 1.4;
+jupiterOrbit.rotation.y = 3.5;
+saturnOrbit.rotation.y = 5.3;
+uranusOrbit.rotation.y = 2.9;
+neptuneOrbit.rotation.y = 0.2;
 
 function neptuneOrbitFunc(time) {
   neptuneOrbit.rotation.y += time;
@@ -245,24 +306,46 @@ function displayCard(e) {
   </div>`
 }
 
+function displayAsteroidCard() {
+  planetInformationCard.innerHTML = `
+  <div class="card asteroid-card" style="background-image: url('/textures/asteroids.jpg')">
+    <h1 class="planet_name">Asteroid Belt</h1>
+    <div class="card-discription">
+      <ul>
+        <div class="list-item"><li></li><li><span>Location:</span> Between Mars and Jupiter</li></div>
+        <div class="list-item"><li></li><li><span>Orbit:</span> Around the Sun</li></div>
+        <div class="list-item"><li></li><li><span>Composition:</span> Rock, metal, and ice</li></div>
+      </ul>
+      <h2>Facts</h2>
+      <ul>
+        <div class="list-item"><li></li><li>The belt contains millions of objects, from dust-sized grains to dwarf planets.</li></div>
+        <div class="list-item"><li></li><li>Most of its total mass is in the dwarf planet Ceres.</li></div>
+        <div class="list-item"><li></li><li>Asteroids are spread across a vast region, so the belt is mostly empty space.</li></div>
+      </ul>
+    </div>
+  </div>`;
+}
 
 
 // created raycaster 
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
+const selectableBodies = [sun, mercury, venus, earth, moon, mars, jupiter, saturn, uranus, neptune, asteroids];
 
 function myfnc(e) {
   mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
   raycaster.setFromCamera(mouse, camera)
 
-  const intersects = raycaster.intersectObjects(
-    [sun, mercury, venus, earth, moon, mars, jupiter, saturn, uranus, neptune],
-    false
-  )
+  const intersects = raycaster.intersectObjects(selectableBodies, false)
 
   if (intersects.length > 0) {
     const clickedObject = intersects[0].object;
+
+    if (clickedObject === asteroids) {
+      displayAsteroidCard();
+      return;
+    }
 
     switch (clickedObject) {
       case sun: displayCard('sun');
@@ -298,13 +381,22 @@ function myfnc(e) {
 
 renderer.domElement.addEventListener('click', myfnc, false)
 
+const speedSlider = document.getElementById('speed-slider');
+const speedValue = document.getElementById('speed-value');
+let speedMultiplier = Number(speedSlider.value);
+
+speedSlider.addEventListener('input', () => {
+  speedMultiplier = Number(speedSlider.value);
+  speedValue.value = `${speedMultiplier.toFixed(1)}×`;
+});
+
 function orbitRingsFunc(radius, orbit) {
   const orbitRing = new THREE.Mesh(
     new THREE.RingGeometry(radius - 0.1, radius + 0.1, 256),
     new THREE.MeshBasicMaterial({
-      color: 0xd5c4ad,
+      color: 0xffffff,
       transparent: true,
-      opacity: 0.42,
+      opacity: 0,
       side: THREE.DoubleSide
     })
   )
@@ -327,19 +419,23 @@ const clock = new THREE.Clock();
 
 function animate() {
   requestAnimationFrame(animate);
-  const deltaTime = clock.getDelta();
+  const frameTime = clock.getDelta();
+  const deltaTime = frameTime * speedMultiplier;
+  const earthOrbitRate = deltaTime * 0.01;
 
-  mercuryOrbitFunc(deltaTime * 0.03);
-  venusOrbitFunc(deltaTime * 0.02);
-  earthOrbitFunc(deltaTime * 0.01);
-  marsOrbitFunc(deltaTime * 0.008);
-  asteroidBelt.rotation.y += deltaTime * 0.006;
-  jupiterOrbitFunc(deltaTime * 0.006);
-  saturnOrbitFunc(deltaTime * 0.004);
-  uranusOrbitFunc(deltaTime * 0.003);
-  neptuneOrbitFunc(deltaTime * 0.002);
+  sun.rotation.y += deltaTime * 0.025;
+  mercuryOrbitFunc(earthOrbitRate * (365.256 / 87.969));
+  venusOrbitFunc(earthOrbitRate * (365.256 / 224.701));
+  earthOrbitFunc(earthOrbitRate);
+  marsOrbitFunc(earthOrbitRate * (365.256 / 686.98));
+  asteroidBelt.rotation.y += earthOrbitRate / 4.44;
+  jupiterOrbitFunc(earthOrbitRate * (365.256 / 4332.59));
+  saturnOrbitFunc(earthOrbitRate * (365.256 / 10759.2));
+  uranusOrbitFunc(earthOrbitRate * (365.256 / 30688.5));
+  neptuneOrbitFunc(earthOrbitRate * (365.256 / 60182));
 
-  controls.update();
+  if (flyControls.enabled) flyControls.update(frameTime);
+  else controls.update();
   renderer.render(scene, camera);
 
 }

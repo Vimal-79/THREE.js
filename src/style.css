@@ -16,6 +16,12 @@ canvas {
   position: fixed;
   inset: 0;
   display: block;
+  cursor: grab;
+  touch-action: none;
+}
+
+canvas:active {
+  cursor: grabbing;
 }
 
 #information-box-container {
@@ -23,6 +29,67 @@ canvas {
   inset: 0;
   z-index: 1;
   pointer-events: none;
+}
+
+#speed-control {
+  position: fixed;
+  top: 1.25rem;
+  right: 1.25rem;
+  z-index: 2;
+  width: min(250px, calc(100vw - 2.5rem));
+  box-sizing: border-box;
+  padding: 0.9rem 1rem;
+  color: #f8f7ff;
+  background: rgb(5 12 26 / 78%);
+  border: 1px solid rgb(255 255 255 / 22%);
+  border-radius: 0.75rem;
+  backdrop-filter: blur(8px);
+}
+
+#speed-control label {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+#speed-value {
+  color: #ffd27b;
+  font-variant-numeric: tabular-nums;
+}
+
+#speed-slider {
+  width: 100%;
+  accent-color: #ffc15a;
+}
+
+.camera-controls {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.camera-controls button {
+  flex: 1;
+  padding: 0.4rem;
+  color: #f8f7ff;
+  background: rgb(255 255 255 / 8%);
+  border: 1px solid rgb(255 255 255 / 25%);
+  border-radius: 0.4rem;
+  cursor: pointer;
+}
+
+.camera-controls button[aria-pressed="true"] {
+  color: #17100a;
+  background: #ffc15a;
+  border-color: #ffc15a;
+}
+
+#fly-help {
+  margin-top: 0.65rem;
+  color: #d3d9e8;
+  font-size: 0.75rem;
 }
 
 .card {
