@@ -278,16 +278,6 @@ const neptuneOrbit = new THREE.Group();
 neptuneOrbit.add(neptune)
 neptune.position.set(180, 0, 0)
 sun.add(neptuneOrbit)
-mercuryOrbit.rotation.y = 0.8;
-venusOrbit.rotation.y = 2.2;
-earthOrbit.rotation.y = 4.7;
-moonOrbit.rotation.y = 1.2;
-marsOrbit.rotation.y = 1.4;
-jupiterOrbit.rotation.y = 3.5;
-saturnOrbit.rotation.y = 5.3;
-uranusOrbit.rotation.y = 2.9;
-neptuneOrbit.rotation.y = 0.2;
-
 function neptuneOrbitFunc(time) {
   neptuneOrbit.rotation.y += time;
 }
@@ -380,6 +370,9 @@ function myfnc(e) {
 }
 
 renderer.domElement.addEventListener('click', myfnc, false)
+window.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') planetInformationCard.innerHTML = '';
+});
 
 const speedSlider = document.getElementById('speed-slider');
 const speedValue = document.getElementById('speed-value');
